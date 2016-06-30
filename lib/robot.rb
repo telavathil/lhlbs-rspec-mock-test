@@ -11,13 +11,33 @@ end
 
 class Robot
     attr_reader :position, :items
-    attr_accessor :health, :equipped_weapon
+    attr_accessor :health, :equipped_weapon, :shields
+
+    @@robots =[]
 
     def initialize
         @position = [0, 0]
         @items = []
         @health = 100
         @equipped_weapon = nil
+        @shields = 50
+        @@robots << self
+    end
+
+    def self.robots
+      @@robots
+    end
+
+    def self.in_position(x, y)
+      @@robots.select {|robot| robot.position[0] == x && robot.position[1] == y}
+    end
+
+    def self.dump_robots
+      @@robots = []
+    end
+
+    def scanning
+      self.position[0],self.position[1]
     end
 
     def move_left
@@ -37,10 +57,10 @@ class Robot
     end
 
     def pick_up(item)
-      if (item.class == BoxOfBolts && self.health < 81)
-        #binding.pry
-        item.feed(self)
-      end
+        if item.class == BoxOfBolts && health < 81
+            # binding.pry
+            item.feed(self)
+        end
         items << item if items_weight < 250
         @equipped_weapon = item if item.class <= Weapon
     end
@@ -54,41 +74,45 @@ class Robot
     end
 
     def wound(damage)
-        if damage < @health
-            @health -= damage
+        if ((@shields - damage) < 0)
+            if damage < @health
+                @health -= (@shields - damage).abs
+                @shields = 0
+            else
+                @health = 0
+            end
         else
-            @health = 0
+            @shields -= damage
         end
-    end
+      end
 
-    def heal(healing)
-        if (healing + @health) > 100
-            @health = 100
-        else
-            @health += healing
+        def heal(healing)
+            if (healing + @health) > 100
+                @health = 100
+            else
+                @health += healing
+            end
         end
-    end
 
-    def attack(robot)
-      #binding.pry
-      #if robot is more than one space away, no attack occurs
-      weapon_range =  self.equipped_weapon.nil? ? 0 : self.equipped_weapon.range
-      pos_greater_than_range=[]
-      robot.position.each_index {|index| pos_greater_than_range <<
-       ((robot.position[index] - @position[index]).abs > weapon_range )}
-       #binding.pry
-        unless (pos_greater_than_range.include? (true))
-          if @equipped_weapon.nil?
-              robot.wound(5)
-          else
-              equipped_weapon.hit(robot)
-              if self.equipped_weapon.name == "Grenade"
-                self.equipped_weapon = nil
-              end
+        def attack(robot)
+            # if robot is more than one space away, no attack occurs
+            weapon_range = equipped_weapon.nil? ? 0 : equipped_weapon.range
+            pos_greater_than_range = []
+            robot.position.each_index do |index|
+                pos_greater_than_range <<
+                    ((robot.position[index] - @position[index]).abs > weapon_range)
+            end
+
+            unless pos_greater_than_range.include? true
+
+                if @equipped_weapon.nil?
+                    robot.wound(5)
+                else
+                    equipped_weapon.hit(robot)
+                    self.equipped_weapon = nil if equipped_weapon.name == 'Grenade'
+                end
+            end
           end
-        end
-
-    end
 
         def heal!(healing)
             if (healing + @health) > 100

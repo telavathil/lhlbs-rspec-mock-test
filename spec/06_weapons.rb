@@ -1,5 +1,5 @@
 require_relative 'spec_helper'
-require './lib/weapon.rb'
+
 
 describe Weapon do
   before :each do

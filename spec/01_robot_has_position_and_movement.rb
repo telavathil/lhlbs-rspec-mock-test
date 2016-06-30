@@ -17,11 +17,37 @@ describe Robot do
     @robot = Robot.new
   end
 
+  after :each do
+    Robot.dump_robots
+  end
+
+  describe "#robots" do
+    it "has an array to hold robots" do
+      expect(Robot.robots).not_to be(nil)
+      expect(Robot.robots).to eq([@robot])
+    end
+  end
+
+  describe "#in_position(x, y)" do
+    it "The Robot class can be asked to return all robots in a given position (x,y)." do
+      expect(Robot.in_position(0, 0)).to eq([@robot])
+    end
+  end
+
+
   # The pound symbol is a convention to imply that position is a callable method
   # This test is basically saying that it expects @robot.position == [0, 0]
   describe "#position" do
     it "starts off at the center of the board, which is 0,0" do
       expect(@robot.position).to be == [0,0]
+    end
+  end
+
+  describe "#scanning" do
+    it "A given robot should be able to scan its surroundings" do
+      @robot2 = Robot.new
+      @robot2.move_left
+      expect(@robot.scanning).to eq([@robot2])
     end
   end
 
