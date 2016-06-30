@@ -5,6 +5,7 @@ class BoxOfBolts < Item
   end
 
   def feed(robot)
+    # binding.pry
     robot.heal(20)
   end
 
